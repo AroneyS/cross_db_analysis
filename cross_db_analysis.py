@@ -81,8 +81,12 @@ def main():
     # print("reads: %s, assem: %s, bins: %s, output: %s, outputcsv: %s" %
     #       (reads_db_path, assemblies_db_path, bins_db_path, output_db_path, output_path))
 
-    CrossDatabaseComparator(reads_db_path, assemblies_db_path, bins_db_path,
-                                         output_db_path, output_path)
+    CrossDatabaseComparator(
+            reads_db=reads_db_path,
+            assemblies_db=assemblies_db_path,
+            bins_db=bins_db_path,
+            output_db=output_db_path,
+            output=output_path)
 
 
 if __name__ == "__main__":
