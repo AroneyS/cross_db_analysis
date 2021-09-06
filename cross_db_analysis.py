@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 ############################
 ### cross_db_analysis.py ###
 ############################
@@ -24,7 +22,24 @@ class SqliteDatabase:
     
     def execute(self, sql):
         return self.cursor.execute(sql)
-        
+
+class CrossDatabaseComparator:
+    def __init__(self, **kwargs):
+        self.reads_db_path = kwargs.pop('reads_db')
+        self.assemblies_db_path = kwargs.pop('assemblies_db')
+        self.bins_db_path = kwargs.pop('bins_db')
+        self.output_db_path = kwargs.pop('output_db')
+        self.output_path = kwargs.pop('output')
+
+        if self.output_db_path:
+            self.output_db = self._connect_database(self.output_db_path)
+        else:
+            self.output_db = self._connect_database('')
+    
+    def _connect_database(self, db_path):
+        db = SqliteDatabase(db_path)
+        return db
+
 
 def main():
     pass
