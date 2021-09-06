@@ -27,8 +27,9 @@ class TestCrossDatabaseComparator(unittest.TestCase):
     def CreateComparator(self, reads_db_path = None, assemblies_db_path = None,
                          bins_db_path = None, output_db_path = None, output_path = None):
         if reads_db_path is None: reads_db_path = self.reads_db_path
-        if assemblies_db_path is None: assemblies_db_path = self.assemblies_db_path
+        if assemblies_db_path is None: assemblies_db_path = False
         if bins_db_path is None: bins_db_path = self.bins_db_path
+        if output_db_path is None: output_db_path = False
         if output_path is None: output_path = tempfile.NamedTemporaryFile(mode='w')
 
         comparator = CrossDatabaseComparator(
