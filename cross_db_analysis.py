@@ -78,8 +78,7 @@ def main():
     output_db_path = getattr(args, 'output_db', False)
     output_path = getattr(args, 'output')
 
-    # print("reads: %s, assem: %s, bins: %s, output: %s, outputcsv: %s" %
-    #       (reads_db_path, assemblies_db_path, bins_db_path, output_db_path, output_path))
+    # print(f"reads: {reads_db_path}, assem: {assemblies_db_path}, bins: {bins_db_path}, output: {output_db_path}, outputcsv: {output_path}")
 
     CrossDatabaseComparator(
             reads_db=reads_db_path,
