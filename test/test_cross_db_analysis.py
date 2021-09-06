@@ -14,9 +14,9 @@ class TestSqliteDatabase(unittest.TestCase):
             db = SqliteDatabase(db_path.name)
             db.execute("CREATE TABLE test (id integer PRIMARY KEY, name text);")
             db.execute("INSERT INTO test(name) VALUES ('test value');")
-
-            select = db.execute("SELECT * FROM test;").fetchall()
-            self.assertEqual(select, [(1, 'test value')])
+            observed = db.execute("SELECT * FROM test;").fetchall()
+            
+            self.assertEqual(observed, [(1, 'test value')])
 
 
 class TestCrossDatabaseComparator(unittest.TestCase):
