@@ -50,6 +50,25 @@ class TestCrossDatabaseComparator(unittest.TestCase):
         comparator = self.CreateComparator()
         self.assertIsInstance(comparator.output_db, SqliteDatabase)
             
+    
+    def assertAttachedDatabase(self, main_db, attach_db, attach_table, expected):
+        cmd = f"SELECT * FROM {attach_db}.{attach_table} LIMIT 1;"
+        observed = main_db.execute(cmd).fetchall()
+        self.assertEqual(observed, expected)
+    
+    def test_input_databases_attached(self):
+        comparator = self.CreateComparator(assemblies_db_path=self.assemblies_db_path)
+        
+        expected = [(1, 'novaseq.20110700_P3D.1', 1, 1.641304347826087, 'Root; d__Eukaryota; Fungi', 1, 1)]
+        self.assertAttachedDatabase(comparator.output_db, comparator.reads_db_name, "otus", expected)
+
+        expected = [(1, 'Fen.Labelled.R1.T3.F1.trimmomatic.megahit.final.contigs', 1, 1.1878980891719746, 'Root; d__Eukaryota; Amoebozoa', 1, 1)]
+        self.assertAttachedDatabase(comparator.output_db, comparator.assemblies_db_name, "otus", expected)
+
+        expected = [(1, 'Bog.None.R2.T0.trimmomatic.megahit_bin.272_80.28_7.13', 1, 1.007074340527578, 'Root; d__Bacteria; p__Desulfobacterota_B; c__Binatia; o__UTPRO1; f__UTPRO1; g__UTPRO1; s__UTPRO1_sp002050235', 1, 1)]
+        self.assertAttachedDatabase(comparator.output_db, comparator.bins_db_name, "otus", expected)
+
+
 
 if __name__ == "__main__":
     unittest.main()

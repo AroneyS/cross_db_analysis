@@ -26,6 +26,10 @@ class SqliteDatabase:
         return self.cursor.execute(sql)
 
 class CrossDatabaseComparator:
+    reads_db_name = "reads_db"
+    assemblies_db_name = "assemblies_db"
+    bins_db_name = "bins_db"
+
     def __init__(self, **kwargs):
         logging.info("Initialising CrossDatabaseComparator")
         self.reads_db_path = kwargs.pop('reads_db')
@@ -40,10 +44,19 @@ class CrossDatabaseComparator:
         else:
             logging.info("Creating temporary output database")
             self.output_db = self._connect_database('')
+        
+        logging.info("Attaching input databases")
+        self._attach_database(self.reads_db_path, self.reads_db_name)
+        if self.assemblies_db_path:
+            self._attach_database(self.assemblies_db_path, self.assemblies_db_name)
+        self._attach_database(self.bins_db_path, self.bins_db_name)
     
     def _connect_database(self, db_path):
         db = SqliteDatabase(db_path)
         return db
+    
+    def _attach_database(self, db_path, db_name):
+        self.output_db.execute(f"ATTACH '{db_path}' as {db_name};")
 
 
 def main():
