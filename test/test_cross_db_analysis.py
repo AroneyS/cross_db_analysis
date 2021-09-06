@@ -42,6 +42,11 @@ class TestCrossDatabaseComparator(unittest.TestCase):
 
 
     def test_creates_output_database(self):
+        output_db_file = tempfile.NamedTemporaryFile(mode='w')
+        comparator = self.CreateComparator(output_db_path=output_db_file.name)
+        self.assertIsInstance(comparator.output_db, SqliteDatabase)
+    
+    def test_creates_tmp_output_database(self):
         comparator = self.CreateComparator()
         self.assertIsInstance(comparator.output_db, SqliteDatabase)
             
