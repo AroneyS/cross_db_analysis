@@ -1,0 +1,13 @@
+# open sqlite3
+
+ATTACH "../../projects/01-singleM-coassembly/results/singlem_reads_combined.sdb/otus.sqlite3" as reads_db;
+ATTACH "../../projects/01-singleM-coassembly/results/singlem_assemblies_combined.sdb/otus.sqlite3" as assemblies_db;
+ATTACH "../../projects/01-singleM-coassembly/results/singlem_bins_combined.sdb/otus.sqlite3" as bins_db;
+
+ATTACH "test/data/reads_combined.sdb/otus.sqlite3" as reads_db2;
+ATTACH "test/data/assemblies_combined.sdb/otus.sqlite3" as assemblies_db2;
+ATTACH "test/data/bins_combined.sdb/otus.sqlite3" as bins_db2;
+
+CREATE TABLE reads_db2.otus AS SELECT * FROM reads_db.otus LIMIT 1000;
+CREATE TABLE assemblies_db2.otus AS SELECT * FROM assemblies_db.otus LIMIT 1000;
+CREATE TABLE bins_db2.otus AS SELECT * FROM bins_db.otus LIMIT 1000;
