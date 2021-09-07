@@ -49,7 +49,24 @@ class TestCrossDatabaseComparator(unittest.TestCase):
     def test_creates_tmp_output_database(self):
         comparator = self.CreateComparator()
         self.assertIsInstance(comparator.output_db, SqliteDatabase)
-            
+    
+    @unittest.skip('Temp database not keeping created table')
+    def test_overwrites_output_database(self):
+        output_db_file = tempfile.NamedTemporaryFile(mode='w')
+        comparator = self.CreateComparator(output_db_path=output_db_file.name)
+        create_cmd = "CREATE TABLE IF NOT EXISTS test (id integer PRIMARY KEY, name text);"
+        comparator.output_db.execute(create_cmd)
+        comparator.output_db.execute("INSERT INTO test(name) VALUES ('test value');")
+        del(comparator)
+
+        comparator = self.CreateComparator(output_db_path=output_db_file.name)
+        print(output_db_file.name)
+        comparator.output_db.execute(create_cmd)
+        observed = comparator.output_db.execute("SELECT * FROM test;").fetchall()
+        
+        expected = ["blah"]
+        self.assertEqual(observed, expected)
+
     
     def assertAttachedDatabase(self, main_db, attach_db, attach_table, expected):
         cmd = f"SELECT * FROM {attach_db}.{attach_table} LIMIT 1;"
