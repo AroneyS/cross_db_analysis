@@ -118,6 +118,17 @@ class TestCrossDatabaseComparator(unittest.TestCase):
 
         expected = [('Root; d__Bacteria; p__Actinobacteriota; c__Acidimicrobiia; o__Acidimicrobiales; f__Bog-793; g__Fen-455; s__Fen-455_sp003139355', 1, 37.77834580878058, 1, 0)]
         self.assertEqual(observed, expected)
+    
+    def test_create_elusive_table(self):
+        comparator = self.CreateComparator()
+        comparator.compare()
+        comparator.find_elusive()
+        
+        cmd = f"SELECT * FROM {comparator.elusive_table_name} LIMIT 1;"
+        observed = comparator.output_db.execute(cmd).fetchall()
+
+        expected = [('Root; d__Bacteria; p__Omnitrophota; c__UBA8468; o__UBA8468; f__B48-G9; g__B48-G9; s__B48-G9_sp003644395', 1, 21.336956521739122, 0)]
+        self.assertEqual(observed, expected)
 
 
 if __name__ == "__main__":

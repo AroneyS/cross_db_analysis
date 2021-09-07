@@ -40,6 +40,7 @@ class CrossDatabaseComparator:
     bins_db_name = "bins_db"
     bins_table_name = "bins_summary"
     compare_table_name = "cross"
+    elusive_table_name = "elusive"
 
     def __init__(self, **kwargs):
         logging.info("Initialising CrossDatabaseComparator")
@@ -98,7 +99,7 @@ class CrossDatabaseComparator:
         self._create_summary_table(self.reads_table_name, self.reads_db_name)
         self._create_summary_table(self.bins_table_name, self.bins_db_name)
         
-        logging.info(f"Creating compare table {self.compare_table_name}")
+        logging.info(f"Creating compare table: {self.compare_table_name}")
         if self.assemblies_db_path:
             self._create_compare_table_assemblies()
         else:
@@ -175,6 +176,39 @@ class CrossDatabaseComparator:
         self.output_db.execute(cmd)
 
 
+    def find_elusive(self):
+        logging.info(f"Creating find elusive table: {self.elusive_table_name}")
+        self._create_elusive_table()
+    
+    def _create_elusive_table(self):
+        if self.assemblies_db_path:
+            bin_and_or_assembly = "bin, assembly"
+        else:
+            bin_and_or_assembly = "bin"
+
+        cmd = f"""
+        CREATE TABLE
+            {self.elusive_table_name}
+        AS
+        SELECT
+            taxonomy,
+            COUNT(DISTINCT marker_id) as count_marker_id,
+            MAX(sum_coverage) as max_sum_coverage,
+            {bin_and_or_assembly}
+        FROM
+            {self.compare_table_name}
+        WHERE
+            taxonomy LIKE '%; g%'
+        AND
+            bin=0
+        GROUP BY
+            taxonomy
+        ORDER BY
+            max_sum_coverage DESC;
+        """
+        self.output_db.execute(cmd)
+
+
 def main():
     parser = argparse.ArgumentParser(description='Find prevalent OTUs that are not assembled/binned.')
     parser.add_argument('--debug', help='output debug information', action='store_true')
@@ -219,6 +253,7 @@ def main():
             output=output_path,
             force=force)
     comparator.compare()
+    comparator.find_elusive()
 
 
 if __name__ == "__main__":
