@@ -181,10 +181,9 @@ class CrossDatabaseComparator:
         self._create_elusive_table()
     
     def _create_elusive_table(self):
+        bin_and_or_assembly = "bin"
         if self.assemblies_db_path:
-            bin_and_or_assembly = "bin, assembly"
-        else:
-            bin_and_or_assembly = "bin"
+            bin_and_or_assembly += ", assembly"
 
         cmd = f"""
         CREATE TABLE
