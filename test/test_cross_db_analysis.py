@@ -47,9 +47,9 @@ class TestCrossDatabaseComparator(unittest.TestCase):
 
 
     def test_creates_output_database(self):
-        output_db_file = tempfile.NamedTemporaryFile(mode='w')
-        comparator = self.CreateComparator(output_db_path=output_db_file.name)
-        self.assertIsInstance(comparator.output_db, SqliteDatabase)
+        with tempfile.NamedTemporaryFile(mode='w') as output_db_file:
+            comparator = self.CreateComparator(output_db_path=output_db_file.name)
+            self.assertIsInstance(comparator.output_db, SqliteDatabase)
     
     def test_creates_tmp_output_database(self):
         comparator = self.CreateComparator()
@@ -85,9 +85,8 @@ class TestCrossDatabaseComparator(unittest.TestCase):
 
     def test_assemblies_database_not_attached(self):
         comparator = self.CreateComparator()
-        self.assertRaises(sqlite3.OperationalError, self.assertAttachedDatabase,
-            comparator.output_db, comparator.assemblies_db_name, "otus", self.assemblies_db_first
-        )
+        with self.assertRaises(sqlite3.OperationalError) as context:
+            self.assertAttachedDatabase(comparator.output_db, comparator.assemblies_db_name, "otus", self.assemblies_db_first)
 
     def test_input_sdb_folder_attaches(self):
         comparator = self.CreateComparator(
