@@ -99,5 +99,26 @@ class TestCrossDatabaseComparator(unittest.TestCase):
         self.assertAttachedDatabase(comparator.output_db, comparator.bins_db_name, "otus", self.bins_db_first)
     
 
+    def test_create_compare_table(self):
+        comparator = self.CreateComparator()
+        comparator.compare()
+        
+        cmd = f"SELECT * FROM {comparator.output_table_name} WHERE bin=0 LIMIT 1;"
+        observed = comparator.output_db.execute(cmd).fetchall()
+
+        expected = [('Root; d__Bacteria; p__Firmicutes_C; c__Negativicutes; o__Acidaminococcales; f__Acidaminococcaceae', 1, 22.301174490661836, 0)]
+        self.assertEqual(observed, expected)
+    
+    def test_create_compare_table_with_assemblies(self):
+        comparator = self.CreateComparator(assemblies_db_path=self.assemblies_db_path)
+        comparator.compare()
+
+        cmd = f"SELECT * FROM {comparator.output_table_name} WHERE assembly=0 LIMIT 1;"
+        observed = comparator.output_db.execute(cmd).fetchall()
+
+        expected = [('Root; d__Bacteria; p__Actinobacteriota; c__Acidimicrobiia; o__Acidimicrobiales; f__Bog-793; g__Fen-455; s__Fen-455_sp003139355', 1, 37.77834580878058, 1, 0)]
+        self.assertEqual(observed, expected)
+
+
 if __name__ == "__main__":
     unittest.main()

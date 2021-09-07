@@ -33,8 +33,12 @@ class SqliteDatabase:
 class CrossDatabaseComparator:
     singlem_db_name = "otus.sqlite3"
     reads_db_name = "reads_db"
+    reads_table_name = "reads_summary"
     assemblies_db_name = "assemblies_db"
+    assemblies_table_name = "assemblies_summary"
     bins_db_name = "bins_db"
+    bins_table_name = "bins_summary"
+    output_table_name = "cross"
 
     def __init__(self, **kwargs):
         logging.info("Initialising CrossDatabaseComparator")
@@ -84,6 +88,88 @@ class CrossDatabaseComparator:
         self.output_db.execute(f"ATTACH '{db_path}' as {db_name};")
 
 
+    def compare(self):
+        self._create_summary_table(self.reads_table_name, self.reads_db_name)
+        if self.assemblies_db_path:
+            self._create_summary_table(self.assemblies_table_name, self.assemblies_db_name)
+        self._create_summary_table(self.bins_table_name, self.bins_db_name)
+        
+        if self.assemblies_db_path:
+            self._create_output_table_assemblies()
+        else:
+            self._create_output_table()
+    
+    def _create_summary_table(self, table_name, db_name):
+        cmd = f"""
+        CREATE TABLE
+            {table_name}
+        AS
+        SELECT
+            taxonomy,
+            marker_id,
+            SUM(coverage) as sum_coverage
+        FROM
+            {db_name}.otus
+        WHERE
+            taxonomy LIKE '%\_Bacteria%' ESCAPE '\\'
+        OR
+            taxonomy LIKE '%\_Archaea%' ESCAPE '\\'
+        GROUP BY
+            taxonomy,
+            marker_id
+        ORDER BY
+            sum_coverage DESC;
+        """
+        self.output_db.execute(cmd)
+
+    def _create_output_table(self):
+        cmd = f"""
+        CREATE TABLE
+            {self.output_table_name}
+        AS
+        SELECT
+            r.taxonomy,
+            r.marker_id,
+            r.sum_coverage,
+            NOT b.taxonomy IS NULL as bin
+        FROM
+            {self.reads_table_name} r
+        LEFT JOIN
+            {self.bins_table_name} b
+        ON
+            r.taxonomy=b.taxonomy
+        ORDER BY
+            r.sum_coverage DESC;
+        """
+        self.output_db.execute(cmd)
+        
+    def _create_output_table_assemblies(self):
+        cmd = f"""
+        CREATE TABLE
+            {self.output_table_name}
+        AS
+        SELECT
+            r.taxonomy,
+            r.marker_id,
+            r.sum_coverage,
+            NOT b.taxonomy IS NULL as bin,
+            NOT a.taxonomy IS NULL as assembly
+        FROM
+            {self.reads_table_name} r
+        LEFT JOIN
+            {self.bins_table_name} b
+        ON
+            r.taxonomy=b.taxonomy
+        LEFT JOIN
+            {self.assemblies_table_name} a
+        ON
+            r.taxonomy=a.taxonomy
+        ORDER BY
+            r.sum_coverage DESC;
+        """
+        self.output_db.execute(cmd)
+
+
 def main():
     parser = argparse.ArgumentParser(description='Find prevalent OTUs that are not assembled/binned.')
     parser.add_argument('--debug', help='output debug information', action='store_true')
@@ -120,13 +206,14 @@ def main():
 
     # print(f"reads: {reads_db_path}, assem: {assemblies_db_path}, bins: {bins_db_path}, output: {output_db_path}, outputcsv: {output_path}")
 
-    CrossDatabaseComparator(
+    comparator = CrossDatabaseComparator(
             reads_db=reads_db_path,
             assemblies_db=assemblies_db_path,
             bins_db=bins_db_path,
             output_db=output_db_path,
             output=output_path,
             force=force)
+    comparator.compare()
 
 
 if __name__ == "__main__":
