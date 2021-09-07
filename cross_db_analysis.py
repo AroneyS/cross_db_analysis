@@ -8,6 +8,7 @@
 # Manual test code
 # python cross_db_analysis.py \
 # --reads-db /home/aroneys/projects/01-singleM-coassembly/results/singlem_reads_combined.sdb \
+# --assemblies-db /home/aroneys/projects/01-singleM-coassembly/results/singlem_assemblies_combined.sdb \
 # --bins-db /home/aroneys/projects/01-singleM-coassembly/results/singlem_bins_combined.sdb \
 # --output-db /home/aroneys/src/cross_db_analysis/output/output.db \
 # --output /home/aroneys/src/cross_db_analysis/output/output.csv \
@@ -89,11 +90,15 @@ class CrossDatabaseComparator:
 
 
     def compare(self):
-        self._create_summary_table(self.reads_table_name, self.reads_db_name)
         if self.assemblies_db_path:
+            logging.info("Creating summary tables for reads, assemblies and bins")
             self._create_summary_table(self.assemblies_table_name, self.assemblies_db_name)
+        else:
+            logging.info("Creating summary tables for reads and bins")
+        self._create_summary_table(self.reads_table_name, self.reads_db_name)
         self._create_summary_table(self.bins_table_name, self.bins_db_name)
         
+        logging.info(f"Creating output table {self.output_table_name}")
         if self.assemblies_db_path:
             self._create_output_table_assemblies()
         else:
