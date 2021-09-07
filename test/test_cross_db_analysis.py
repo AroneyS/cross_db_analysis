@@ -1,4 +1,4 @@
-import unittest, tempfile, os.path, sys
+import unittest, tempfile, os.path, sys, sqlite3
 
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
 
@@ -83,7 +83,10 @@ class TestCrossDatabaseComparator(unittest.TestCase):
         self.assertAttachedDatabase(comparator.output_db, comparator.bins_db_name, "otus", self.bins_db_first)
 
     def test_assemblies_database_not_attached(self):
-        pass
+        comparator = self.CreateComparator()
+        self.assertRaises(sqlite3.OperationalError, self.assertAttachedDatabase,
+            comparator.output_db, comparator.assemblies_db_name, "otus", self.assemblies_db_first
+        )
 
     def test_input_sdb_folder_attaches(self):
         comparator = self.CreateComparator(
