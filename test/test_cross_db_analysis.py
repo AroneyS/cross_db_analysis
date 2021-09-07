@@ -103,7 +103,7 @@ class TestCrossDatabaseComparator(unittest.TestCase):
         comparator = self.CreateComparator()
         comparator.compare()
         
-        cmd = f"SELECT * FROM {comparator.output_table_name} WHERE bin=0 LIMIT 1;"
+        cmd = f"SELECT * FROM {comparator.compare_table_name} WHERE bin=0 LIMIT 1;"
         observed = comparator.output_db.execute(cmd).fetchall()
 
         expected = [('Root; d__Bacteria; p__Firmicutes_C; c__Negativicutes; o__Acidaminococcales; f__Acidaminococcaceae', 1, 22.301174490661836, 0)]
@@ -113,7 +113,7 @@ class TestCrossDatabaseComparator(unittest.TestCase):
         comparator = self.CreateComparator(assemblies_db_path=self.assemblies_db_path)
         comparator.compare()
 
-        cmd = f"SELECT * FROM {comparator.output_table_name} WHERE assembly=0 LIMIT 1;"
+        cmd = f"SELECT * FROM {comparator.compare_table_name} WHERE assembly=0 LIMIT 1;"
         observed = comparator.output_db.execute(cmd).fetchall()
 
         expected = [('Root; d__Bacteria; p__Actinobacteriota; c__Acidimicrobiia; o__Acidimicrobiales; f__Bog-793; g__Fen-455; s__Fen-455_sp003139355', 1, 37.77834580878058, 1, 0)]

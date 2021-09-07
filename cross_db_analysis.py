@@ -39,7 +39,7 @@ class CrossDatabaseComparator:
     assemblies_table_name = "assemblies_summary"
     bins_db_name = "bins_db"
     bins_table_name = "bins_summary"
-    output_table_name = "cross"
+    compare_table_name = "cross"
 
     def __init__(self, **kwargs):
         logging.info("Initialising CrossDatabaseComparator")
@@ -98,11 +98,11 @@ class CrossDatabaseComparator:
         self._create_summary_table(self.reads_table_name, self.reads_db_name)
         self._create_summary_table(self.bins_table_name, self.bins_db_name)
         
-        logging.info(f"Creating output table {self.output_table_name}")
+        logging.info(f"Creating compare table {self.compare_table_name}")
         if self.assemblies_db_path:
-            self._create_output_table_assemblies()
+            self._create_compare_table_assemblies()
         else:
-            self._create_output_table()
+            self._create_compare_table()
     
     def _create_summary_table(self, table_name, db_name):
         cmd = f"""
@@ -127,10 +127,10 @@ class CrossDatabaseComparator:
         """
         self.output_db.execute(cmd)
 
-    def _create_output_table(self):
+    def _create_compare_table(self):
         cmd = f"""
         CREATE TABLE
-            {self.output_table_name}
+            {self.compare_table_name}
         AS
         SELECT
             r.taxonomy,
@@ -148,10 +148,10 @@ class CrossDatabaseComparator:
         """
         self.output_db.execute(cmd)
         
-    def _create_output_table_assemblies(self):
+    def _create_compare_table_assemblies(self):
         cmd = f"""
         CREATE TABLE
-            {self.output_table_name}
+            {self.compare_table_name}
         AS
         SELECT
             r.taxonomy,
