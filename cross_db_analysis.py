@@ -15,6 +15,7 @@
 import sqlite3
 import logging
 import argparse
+import os.path
 
 
 class SqliteDatabase:
@@ -26,15 +27,20 @@ class SqliteDatabase:
         return self.cursor.execute(sql)
 
 class CrossDatabaseComparator:
+    singlem_db_name = "otus.sqlite3"
     reads_db_name = "reads_db"
     assemblies_db_name = "assemblies_db"
     bins_db_name = "bins_db"
 
     def __init__(self, **kwargs):
         logging.info("Initialising CrossDatabaseComparator")
-        self.reads_db_path = kwargs.pop('reads_db')
-        self.assemblies_db_path = kwargs.pop('assemblies_db')
-        self.bins_db_path = kwargs.pop('bins_db')
+        reads_db_path = kwargs.pop('reads_db')
+        self.reads_db_path = self._get_singlem_db(reads_db_path)
+        assemblies_db_path = kwargs.pop('assemblies_db')
+        self.assemblies_db_path = self._get_singlem_db(assemblies_db_path)
+        bins_db_path = kwargs.pop('bins_db')
+        self.bins_db_path = self._get_singlem_db(bins_db_path)
+
         self.output_db_path = kwargs.pop('output_db')
         self.output_path = kwargs.pop('output')
 
@@ -50,6 +56,12 @@ class CrossDatabaseComparator:
         if self.assemblies_db_path:
             self._attach_database(self.assemblies_db_path, self.assemblies_db_name)
         self._attach_database(self.bins_db_path, self.bins_db_name)
+    
+    def _get_singlem_db(self, db_path):
+        if db_path and db_path.endswith("sdb"):
+            return os.path.join(db_path, self.singlem_db_name)
+        else:
+            return db_path
     
     def _connect_database(self, db_path):
         db = SqliteDatabase(db_path)

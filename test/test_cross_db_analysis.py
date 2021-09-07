@@ -21,8 +21,11 @@ class TestSqliteDatabase(unittest.TestCase):
 
 class TestCrossDatabaseComparator(unittest.TestCase):
     reads_db_path = os.path.join(path_to_data, 'reads_combined.sdb', 'otus.sqlite3')
+    reads_db_first = [(1, 'novaseq.20110700_P3D.1', 1, 1.641304347826087, 'Root; d__Eukaryota; Fungi', 1, 1)]
     assemblies_db_path = os.path.join(path_to_data, 'assemblies_combined.sdb', 'otus.sqlite3')
+    assemblies_db_first = [(1, 'Fen.Labelled.R1.T3.F1.trimmomatic.megahit.final.contigs', 1, 1.1878980891719746, 'Root; d__Eukaryota; Amoebozoa', 1, 1)]
     bins_db_path = os.path.join(path_to_data, 'bins_combined.sdb', 'otus.sqlite3')
+    bins_db_first = [(1, 'Bog.None.R2.T0.trimmomatic.megahit_bin.272_80.28_7.13', 1, 1.007074340527578, 'Root; d__Bacteria; p__Desulfobacterota_B; c__Binatia; o__UTPRO1; f__UTPRO1; g__UTPRO1; s__UTPRO1_sp002050235', 1, 1)]
 
     def CreateComparator(self, reads_db_path = None, assemblies_db_path = None,
                          bins_db_path = None, output_db_path = None, output_path = None):
@@ -49,7 +52,7 @@ class TestCrossDatabaseComparator(unittest.TestCase):
     def test_creates_tmp_output_database(self):
         comparator = self.CreateComparator()
         self.assertIsInstance(comparator.output_db, SqliteDatabase)
-    
+ 
     @unittest.skip('Temp database not keeping created table')
     def test_overwrites_output_database(self):
         output_db_file = tempfile.NamedTemporaryFile(mode='w')
@@ -75,17 +78,23 @@ class TestCrossDatabaseComparator(unittest.TestCase):
     
     def test_input_databases_attached(self):
         comparator = self.CreateComparator(assemblies_db_path=self.assemblies_db_path)
-        
-        expected = [(1, 'novaseq.20110700_P3D.1', 1, 1.641304347826087, 'Root; d__Eukaryota; Fungi', 1, 1)]
-        self.assertAttachedDatabase(comparator.output_db, comparator.reads_db_name, "otus", expected)
+        self.assertAttachedDatabase(comparator.output_db, comparator.reads_db_name, "otus", self.reads_db_first)
+        self.assertAttachedDatabase(comparator.output_db, comparator.assemblies_db_name, "otus", self.assemblies_db_first)
+        self.assertAttachedDatabase(comparator.output_db, comparator.bins_db_name, "otus", self.bins_db_first)
 
-        expected = [(1, 'Fen.Labelled.R1.T3.F1.trimmomatic.megahit.final.contigs', 1, 1.1878980891719746, 'Root; d__Eukaryota; Amoebozoa', 1, 1)]
-        self.assertAttachedDatabase(comparator.output_db, comparator.assemblies_db_name, "otus", expected)
+    def test_assemblies_database_not_attached(self):
+        pass
 
-        expected = [(1, 'Bog.None.R2.T0.trimmomatic.megahit_bin.272_80.28_7.13', 1, 1.007074340527578, 'Root; d__Bacteria; p__Desulfobacterota_B; c__Binatia; o__UTPRO1; f__UTPRO1; g__UTPRO1; s__UTPRO1_sp002050235', 1, 1)]
-        self.assertAttachedDatabase(comparator.output_db, comparator.bins_db_name, "otus", expected)
-
-
+    def test_input_sdb_folder_attaches(self):
+        comparator = self.CreateComparator(
+            reads_db_path=os.path.join(path_to_data, 'reads_combined.sdb'),
+            assemblies_db_path=os.path.join(path_to_data, 'assemblies_combined.sdb'),
+            bins_db_path=os.path.join(path_to_data, 'bins_combined.sdb')
+        )
+        self.assertAttachedDatabase(comparator.output_db, comparator.reads_db_name, "otus", self.reads_db_first)
+        self.assertAttachedDatabase(comparator.output_db, comparator.assemblies_db_name, "otus", self.assemblies_db_first)
+        self.assertAttachedDatabase(comparator.output_db, comparator.bins_db_name, "otus", self.bins_db_first)
+    
 
 if __name__ == "__main__":
     unittest.main()
