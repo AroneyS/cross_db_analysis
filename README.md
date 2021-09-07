@@ -7,8 +7,8 @@ SingleM databases created with combined reads, bins and, optionally, assemblies.
 ## Outputs: Database or CSV file
 
 Database containing table with row for each OTU present in reads. Each row has
-a flag indicating if the OTU is present in the bins or assemblies and if not,
-the taxonomy of the nearest bin/assembly OTU.
+taxonomy, marker_id, sum(coverage) and flags indicating if the OTU is present
+in the bins or assemblies and if not, the taxonomy of the nearest bin/assembly OTU.
 
 ## Steps
 
