@@ -28,19 +28,21 @@ class TestCrossDatabaseComparator(unittest.TestCase):
     bins_db_first = [(1, 'Bog.None.R2.T0.trimmomatic.megahit_bin.272_80.28_7.13', 1, 1.007074340527578, 'Root; d__Bacteria; p__Desulfobacterota_B; c__Binatia; o__UTPRO1; f__UTPRO1; g__UTPRO1; s__UTPRO1_sp002050235', 1, 1)]
 
     def CreateComparator(self, reads_db_path = None, assemblies_db_path = None,
-                         bins_db_path = None, output_db_path = None, output_path = None):
+                         bins_db_path = None, output_db_path = None, output_path = None, force = None):
         if reads_db_path is None: reads_db_path = self.reads_db_path
         if assemblies_db_path is None: assemblies_db_path = False
         if bins_db_path is None: bins_db_path = self.bins_db_path
         if output_db_path is None: output_db_path = False
         if output_path is None: output_path = tempfile.NamedTemporaryFile(mode='w')
+        if force is None: force = False
 
         comparator = CrossDatabaseComparator(
             reads_db=reads_db_path,
             assemblies_db=assemblies_db_path,
             bins_db=bins_db_path,
             output_db=output_db_path,
-            output=output_path)
+            output=output_path,
+            force=force)
         return comparator
 
 
@@ -53,22 +55,21 @@ class TestCrossDatabaseComparator(unittest.TestCase):
         comparator = self.CreateComparator()
         self.assertIsInstance(comparator.output_db, SqliteDatabase)
  
-    @unittest.skip('Temp database not keeping created table')
     def test_overwrites_output_database(self):
-        output_db_file = tempfile.NamedTemporaryFile(mode='w')
-        comparator = self.CreateComparator(output_db_path=output_db_file.name)
-        create_cmd = "CREATE TABLE IF NOT EXISTS test (id integer PRIMARY KEY, name text);"
-        comparator.output_db.execute(create_cmd)
-        comparator.output_db.execute("INSERT INTO test(name) VALUES ('test value');")
-        del(comparator)
+        with tempfile.NamedTemporaryFile(mode='w') as output_db_file:
+            db = SqliteDatabase(output_db_file.name)
+            create_cmd = "CREATE TABLE IF NOT EXISTS test (id integer PRIMARY KEY, name text);"
+            db.execute(create_cmd)
+            db.execute("INSERT INTO test(name) VALUES ('test value');")
+            db.execute("COMMIT;")
+            del(db)
 
-        comparator = self.CreateComparator(output_db_path=output_db_file.name)
-        print(output_db_file.name)
-        comparator.output_db.execute(create_cmd)
-        observed = comparator.output_db.execute("SELECT * FROM test;").fetchall()
-        
-        expected = ["blah"]
-        self.assertEqual(observed, expected)
+            comparator = self.CreateComparator(output_db_path=output_db_file.name, force=True)
+            comparator.output_db.execute(create_cmd)
+            observed = comparator.output_db.execute("SELECT * FROM test;").fetchall()
+
+            expected = []
+            self.assertEqual(observed, expected)
 
     
     def assertAttachedDatabase(self, main_db, attach_db, attach_table, expected):

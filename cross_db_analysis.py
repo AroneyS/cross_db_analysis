@@ -10,12 +10,13 @@
 # --reads-db /home/aroneys/projects/01-singleM-coassembly/results/singlem_reads_combined.sdb \
 # --bins-db /home/aroneys/projects/01-singleM-coassembly/results/singlem_bins_combined.sdb \
 # --output-db /home/aroneys/src/cross_db_analysis/output/output.db \
-# --output /home/aroneys/src/cross_db_analysis/output/output.csv
+# --output /home/aroneys/src/cross_db_analysis/output/output.csv \
+# --force
 
 import sqlite3
 import logging
 import argparse
-import os.path
+import os
 
 
 class SqliteDatabase:
@@ -43,6 +44,7 @@ class CrossDatabaseComparator:
         self.assemblies_db_path = self._get_singlem_db(assemblies_db_path)
         bins_db_path = kwargs.pop('bins_db')
         self.bins_db_path = self._get_singlem_db(bins_db_path)
+        self.force = kwargs.pop('force')
 
         self.output_db_path = kwargs.pop('output_db')
         self.output_path = kwargs.pop('output')
@@ -67,7 +69,15 @@ class CrossDatabaseComparator:
             return db_path
     
     def _connect_database(self, db_path):
+        if self.force:
+            if os.path.exists(db_path):
+                logging.info("Cleaning output database")
+                os.remove(db_path)
+
         db = SqliteDatabase(db_path)
+        tables = db.execute("SELECT name FROM sqlite_master;").fetchall()
+        if len(tables) > 0:
+            raise Exception("Output database not empty. Rerun with --force to remove.")
         return db
     
     def _attach_database(self, db_path, db_name):
@@ -76,8 +86,8 @@ class CrossDatabaseComparator:
 
 def main():
     parser = argparse.ArgumentParser(description='Find prevalent OTUs that are not assembled/binned.')
-    parser.add_argument('--debug', help='output debug information', action="store_true")
-    parser.add_argument('--quiet', action="store_true")
+    parser.add_argument('--debug', help='output debug information', action='store_true')
+    parser.add_argument('--quiet', action='store_true')
     parser.add_argument('--reads-db', type=str, required=True,
                         metavar='<READS DB>', help='path to reads SingleM database')
     parser.add_argument('--assemblies-db', type=str,
@@ -88,6 +98,7 @@ def main():
                         metavar='<OUTPUT DB>', help='path to output SQLite3 database')
     parser.add_argument('--output', type=str, required=True,
                         metavar='<OUTPUT>', help='path to output csv file')
+    parser.add_argument('--force', help='remove output database before running', action='store_true')
 
     args = parser.parse_args()
     if args.debug:
@@ -105,6 +116,7 @@ def main():
     bins_db_path = getattr(args, 'bins_db')
     output_db_path = getattr(args, 'output_db', False)
     output_path = getattr(args, 'output')
+    force = getattr(args, 'force', False)
 
     # print(f"reads: {reads_db_path}, assem: {assemblies_db_path}, bins: {bins_db_path}, output: {output_db_path}, outputcsv: {output_path}")
 
@@ -113,7 +125,8 @@ def main():
             assemblies_db=assemblies_db_path,
             bins_db=bins_db_path,
             output_db=output_db_path,
-            output=output_path)
+            output=output_path,
+            force=force)
 
 
 if __name__ == "__main__":
