@@ -12,8 +12,11 @@ in the bins or assemblies and if not, the taxonomy of the nearest bin/assembly O
 
 ## Steps
 
-1. Load output database as SQLITE3 database. (as temporary database if unspecified)
+1. Load output database as SQLITE3 database (as temporary database if unspecified).
 1. ATTACH reads, assemblies and bins databases.
-1. Form cross database table for comparisons between databases, deduplicating taxonomy.
-1. Search for nearest bin/assembly OTU for non-matching read OTUs.
+1. CREATE summary tables for each database, deduplicating taxonomy and summing coverage.
+1. CREATE compare table listing reads OTUs and whether they are present in bins/assemblies.
 1. Output list of elusive but prevalent OTUs.
+   - Genus/Species resolution
+   - High max(sum(coverage)) across marker genes
+   - No matching bins
