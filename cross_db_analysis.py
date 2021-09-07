@@ -23,6 +23,9 @@ class SqliteDatabase:
         self.connection = sqlite3.Connection(db_path)
         self.cursor = sqlite3.Cursor(self.connection)
     
+    def __del__(self):
+        self.connection.close()
+    
     def execute(self, sql):
         return self.cursor.execute(sql)
 
